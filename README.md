@@ -1,5 +1,12 @@
 # Internal Support Chatbot
 
+The travel workflow now has a dedicated PostgreSQL/API container, local MCP
+bridge, safe failures and request telemetry. See
+[travel deployment and verification](docs/travel-api-verification.md) for the
+repeatable checks and their limits. The repository's new GitHub Actions workflow
+must be evaluated by its actual run; local results alone do not establish hosted
+CI or cloud deployment.
+
 A Python and Streamlit assistant for internal support. It finds evidence in a fictional company library, filters documents by the signed-in user's permissions, and runs a validated tool call for travel reimbursements. An earlier document Q&A version was deployed to Azure Container Apps.
 
 ## Portfolio demo

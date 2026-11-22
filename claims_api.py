@@ -1,5 +1,6 @@
 """Local FastAPI demo for checking a fictional travel claim."""
 
+import os
 from typing import Annotated, Literal
 
 from fastapi import Depends, FastAPI, HTTPException, Response
@@ -7,13 +8,23 @@ from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel, StringConstraints
 
 from auth import authenticate, load_users
-from claims import CLAIM_ID_PATTERN, claim_with_policy
+from claims import CLAIM_ID_PATTERN, ClaimServiceUnavailable, claim_with_policy
 from support_workflow import answer_travel_question
 from company_library import CompanyLibrary
+from request_observability import RequestTelemetry, RequestTelemetryMiddleware
 
 app = FastAPI(title="Internal Support Chatbot · Local Pilot")
 security = HTTPBasic()
 library = CompanyLibrary.load_demo()
+app.state.telemetry = RequestTelemetry()
+app.add_middleware(RequestTelemetryMiddleware, telemetry=app.state.telemetry)
+
+
+@app.get("/healthz")
+def health(response: Response):
+    """Process liveness only: no database or model health is implied."""
+    response.headers["Cache-Control"] = "no-store"
+    return {"status": "alive"}
 
 
 class ClaimStatus(BaseModel):
@@ -30,6 +41,12 @@ def authenticated_account(credentials: Annotated[HTTPBasicCredentials, Depends(s
     return credentials.username
 
 
+@app.get("/ops/metrics")
+def operational_metrics(owner: Annotated[str, Depends(authenticated_account)]):
+    """Authenticated local process aggregates; not model quality or history."""
+    return app.state.telemetry.snapshot()
+
+
 @app.get("/claims/{claim_id}", response_model=ClaimStatus)
 def claim_status(
     claim_id: Annotated[str, StringConstraints(pattern=CLAIM_ID_PATTERN)],
@@ -39,6 +56,8 @@ def claim_status(
     headers = {"Cache-Control": "no-store"}
     try:
         result = claim_with_policy(library, owner, claim_id)
+    except ClaimServiceUnavailable as exc:
+        raise HTTPException(503, "Claim service unavailable", headers=headers) from exc
     except ValueError as exc:
         raise HTTPException(422, str(exc), headers=headers) from exc
     except LookupError as exc:
@@ -70,5 +89,7 @@ def ask(request: AskRequest, owner: Annotated[str, Depends(authenticated_account
     response.headers["Cache-Control"] = "no-store"
     try:
         return answer_travel_question(library, owner, request.question)
+    except ClaimServiceUnavailable as exc:
+        raise HTTPException(503, "Claim service unavailable", headers={"Cache-Control": "no-store"}) from exc
     except LookupError as exc:
         raise HTTPException(503, "Policy unavailable", headers={"Cache-Control": "no-store"}) from exc

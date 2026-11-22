@@ -1,0 +1,25 @@
+FROM python:3.13-slim@sha256:e48f59cdba69a3cbd9ed2cf0f348d90d45a8d350d98134cf1070bc106ee9ed90
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    RAG_ALLOW_EXTERNAL=false \
+    RAG_ENABLE_FIELD_API=false \
+    RAG_LOG_REQUESTS=true \
+    LANGSMITH_TRACING=false
+
+WORKDIR /app
+COPY requirements-api.lock ./
+RUN python -m pip install --no-cache-dir -r requirements-api.lock \
+    && groupadd --gid 10001 api \
+    && useradd --uid 10001 --gid api --no-create-home api
+
+COPY claims_api.py claims.py postgres_claims.py auth.py support_workflow.py \
+    company_library.py answer_machine.py request_observability.py ./
+COPY demo/company_library.json ./demo/company_library.json
+
+USER 10001:10001
+EXPOSE 8000
+HEALTHCHECK --interval=5s --timeout=3s --start-period=10s \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/healthz', timeout=2)"
+
+CMD ["python", "-m", "uvicorn", "claims_api:app", "--host", "0.0.0.0", "--port", "8000", "--no-access-log"]
