@@ -54,3 +54,4 @@ jobs:
         with:
           name: travel-api-reports
           path: .ci-artifacts/
+          include-hidden-files: true
