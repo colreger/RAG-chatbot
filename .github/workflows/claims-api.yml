@@ -1,0 +1,57 @@
+name: Travel API verification
+
+on: [push, pull_request, workflow_dispatch]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install pinned API dependencies
+        run: python -m pip install -r requirements-api.lock
+      - name: Run offline acceptance checks
+        run: python -m evaluation.ci --output-dir .ci-artifacts/offline
+      - name: Create fictional demo and start containers
+        run: |
+          python scripts/setup_claims_postgres.py
+          docker compose -f compose.claims.yaml up -d --build --wait
+      - name: Run PostgreSQL and actual HTTP checks
+        run: python -m evaluation.ci --integration --output-dir .ci-artifacts/integration
+      - name: Install isolated MCP verification environment
+        run: |
+          python -m venv .venv-mcp
+          .venv-mcp/bin/python -m pip install -r requirements-mcp.lock
+      - name: Verify MCP boundaries and actual stdio protocol
+        run: |
+          .venv-mcp/bin/python -m unittest discover -s tests -p test_mcp_claims.py -v
+          .venv-mcp/bin/python -m evaluation.mcp_protocol --output .ci-artifacts/integration/mcp-protocol.json
+      - name: Verify actual database outage and recovery
+        run: |
+          set -e
+          trap 'docker compose -f compose.claims.yaml up -d --wait postgres' EXIT
+          docker compose -f compose.claims.yaml stop postgres
+          python -m evaluation.postgres_claims --expect-unavailable --output .ci-artifacts/integration/postgres-outage.json
+          python -m evaluation.container_http --expect-unavailable --output .ci-artifacts/integration/http-outage.json
+          python -m evaluation.observability --expect-unavailable --output .ci-artifacts/integration/telemetry-outage.json
+          .venv-mcp/bin/python -m evaluation.mcp_protocol --expect-unavailable --output .ci-artifacts/integration/mcp-outage.json
+          docker compose -f compose.claims.yaml up -d --wait postgres
+          trap - EXIT
+          python -m evaluation.postgres_claims --output .ci-artifacts/integration/postgres-recovery.json
+          python -m evaluation.container_http --output .ci-artifacts/integration/http-recovery.json
+      - name: Stop dedicated demo containers
+        if: always()
+        run: docker compose -f compose.claims.yaml stop
+      - name: Upload evaluation reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: travel-api-reports
+          path: .ci-artifacts/
+          include-hidden-files: true

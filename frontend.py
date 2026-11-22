@@ -10,7 +10,7 @@ from threading import Lock
 
 import streamlit as st
 
-from claims import claim_with_policy
+from claims import ClaimServiceUnavailable, claim_with_policy
 from support_workflow import answer_travel_question
 from company_library import CompanyLibrary
 from auth import authenticate, load_users, valid_session
@@ -302,7 +302,7 @@ with claims_tab:
     if submitted:
         try:
             claim = claim_with_policy(library, owner, claim_id.strip())
-        except (ValueError, LookupError) as exc:
+        except (ValueError, LookupError, ClaimServiceUnavailable) as exc:
             st.error(str(exc))
         else:
             if claim is None:
@@ -323,7 +323,7 @@ with claims_tab:
     if asked:
         try:
             result = answer_travel_question(library, owner, question)
-        except (ValueError, LookupError) as exc:
+        except (ValueError, LookupError, ClaimServiceUnavailable) as exc:
             st.error(str(exc))
         else:
             st.write(result["answer"])

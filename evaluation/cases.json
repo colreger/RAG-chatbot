@@ -1,0 +1,10 @@
+[
+  {"id":"own-claim","account":"gandalf","question":"Wie ist der Stand von RK-1042?","status":"answered","answer":"Teilweise erstattet. Minibar ist eine private Ausgabe.","source":"Private Ausgaben bei Dienstreisen"},
+  {"id":"foreign-claim","account":"galadriel","question":"Wie ist der Stand von RK-1042?","status":"not_found","answer":"Kein sichtbarer Vorgang gefunden.","source":null},
+  {"id":"missing-claim","account":"galadriel","question":"Wie ist der Stand von RK-9999?","status":"not_found","answer":"Kein sichtbarer Vorgang gefunden.","source":null},
+  {"id":"missing-id","account":"gandalf","question":"Wie ist der Status?","status":"clarify","answer":"Wie lautet die Vorgangsnummer? Beispiel: RK-1042.","source":null},
+  {"id":"multiple-ids","account":"gandalf","question":"Vergleiche RK-1042 und RK-9999.","status":"clarify","answer":"Bitte frage jeweils nach einem Vorgang.","source":null},
+  {"id":"policy","account":"gandalf","question":"Wird die Minibar erstattet?","status":"answered","answer":"Private Ausgaben wie Minibar-Konsum werden bei Dienstreisen nicht erstattet.","source":"Private Ausgaben bei Dienstreisen"},
+  {"id":"missing-policy","account":"gandalf","question":"Mondflug","status":"not_found","answer":"Kein passender Beleg gefunden.","source":null},
+  {"id":"restricted-policy","account":"gandalf","question":"Nordstern","status":"not_found","answer":"Kein passender Beleg gefunden.","source":null}
+]

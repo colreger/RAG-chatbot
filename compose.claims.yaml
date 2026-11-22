@@ -1,0 +1,62 @@
+name: support-claims-learning
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    image: support-claims-api:local
+    environment:
+      CLAIMS_BACKEND: postgres
+      CLAIMS_DATABASE_URL_FILE: /run/secrets/api_database_url
+      RAG_USERS_FILE: /run/secrets/api_users
+      RAG_ALLOW_EXTERNAL: "false"
+      RAG_ENABLE_FIELD_API: "false"
+      RAG_LOG_REQUESTS: "true"
+    ports:
+      - "127.0.0.1:8018:8000"
+    secrets:
+      - api_database_url
+      - api_users
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    depends_on:
+      postgres:
+        condition: service_healthy
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: claims_admin
+      POSTGRES_DB: claims_demo
+      POSTGRES_PASSWORD_FILE: /run/secrets/admin_password
+    ports:
+      - "127.0.0.1:55438:5432"
+    secrets:
+      - admin_password
+      - reader_password
+    volumes:
+      - claims_data:/var/lib/postgresql/data
+      - ${CLAIMS_RUNTIME_DIR:-.claims-local}/init-claims.sql:/docker-entrypoint-initdb.d/10-claims.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U claims_admin -d claims_demo"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+secrets:
+  api_database_url:
+    file: ${CLAIMS_RUNTIME_DIR:-.claims-local}/database-url-container
+  api_users:
+    file: ${CLAIMS_RUNTIME_DIR:-.claims-local}/users-container.json
+  admin_password:
+    file: ${CLAIMS_RUNTIME_DIR:-.claims-local}/admin-password
+  reader_password:
+    file: ${CLAIMS_RUNTIME_DIR:-.claims-local}/reader-password
+
+volumes:
+  claims_data:

@@ -30,6 +30,9 @@ __pycache__/
 privacy_rag_db/
 .rag-users.json
 .rag-demo-access.md
+.claims-local/
+.venv-mcp/
+.ci-artifacts/
 tests/
 README_backup.md
 docs/Cheat-Sheet_RAG_Recht_und_Datenschutz.md

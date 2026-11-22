@@ -30,3 +30,8 @@ privacy_rag_db/
 /docs/Cheat-Sheet_RAG_Recht_und_Datenschutz.md
 /docs/Gespraechsvorbereitung_Kurzfassung.md
 /docs/interview-vorbereitung.md
+
+# Generated demo credentials and CI output
+.claims-local/
+.venv-mcp/
+.ci-artifacts/

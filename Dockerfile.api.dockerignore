@@ -1,0 +1,13 @@
+**
+!Dockerfile.api
+!requirements-api.lock
+!claims_api.py
+!claims.py
+!postgres_claims.py
+!auth.py
+!support_workflow.py
+!company_library.py
+!answer_machine.py
+!request_observability.py
+!demo/
+!demo/company_library.json
