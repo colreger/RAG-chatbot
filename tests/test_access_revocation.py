@@ -7,11 +7,11 @@ from scripts.check_sharepoint_access import check
 class AccessRevocationTests(unittest.TestCase):
     def test_same_query_and_index_after_revocation(self):
         library = CompanyLibrary.load_demo()
-        self.assertTrue(library.search("bob", "Nordstern 482"))
-        self.assertEqual(library.search("bob", "Nordstern 482", hr_revoked=True), [])
-        self.assertIsNone(library.preview("bob", "Nordstern 482", hr_revoked=True))
-        self.assertTrue(library.search("bob", "Taxi Flughafen", hr_revoked=True))
-        self.assertTrue(library.search("bob", "Nordstern 482"))
+        self.assertTrue(library.search("galadriel", "Nordstern 482"))
+        self.assertEqual(library.search("galadriel", "Nordstern 482", hr_revoked=True), [])
+        self.assertIsNone(library.preview("galadriel", "Nordstern 482", hr_revoked=True))
+        self.assertTrue(library.search("galadriel", "Taxi Flughafen", hr_revoked=True))
+        self.assertTrue(library.search("galadriel", "Nordstern 482"))
 
     def test_stale_graph_hit_does_not_override_current_access(self):
         def read(path, *, denied_ok=False):

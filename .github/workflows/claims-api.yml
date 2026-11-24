@@ -24,6 +24,10 @@ jobs:
           docker compose -f compose.claims.yaml up -d --build --wait
       - name: Run PostgreSQL and actual HTTP checks
         run: python -m evaluation.ci --integration --output-dir .ci-artifacts/integration
+      - name: Restore backup and verify access boundaries
+        run: python -m evaluation.backup_restore --output .ci-artifacts/integration/backup-restore.json
+      - name: Verify access revocation
+        run: python -m unittest discover -s tests -p test_access_revocation.py -v
       - name: Install isolated MCP verification environment
         run: |
           python -m venv .venv-mcp

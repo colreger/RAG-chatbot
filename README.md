@@ -9,6 +9,12 @@ CI or cloud deployment.
 
 A Python and Streamlit assistant for internal support. It finds evidence in a fictional company library, filters documents by the signed-in user's permissions, and runs a validated tool call for travel reimbursements. An earlier document Q&A version was deployed to Azure Container Apps.
 
+## Security case study
+
+The [security case study](docs/security-case-study.md) follows selected BSI
+IT-Grundschutz steps. It covers protection needs, risks and control evidence.
+A restore check verifies the data and access rules in a fresh PostgreSQL database.
+
 ## Portfolio demo
 
 The walkthrough uses the same claim lookup, policy index and validated calculator as the Streamlit application. It supplies a prepared tool call and runs without an API key.
